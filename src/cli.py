@@ -19,6 +19,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.answering import GroundedAnswer, GroundedAnswerGenerator
 from src.config import DEFAULT_TOP_K, INDEX_DIR
 from src.retrieval import KnowledgeBaseRetriever, RetrievalResult
+from src.agent import VoiceOpsAgent
 
 
 def print_formatted_result(result: GroundedAnswer):
@@ -67,37 +68,41 @@ def run_single_query(
     return generator.generate_answer(query, chunks)
 
 
-def interactive_loop(
-    retriever: KnowledgeBaseRetriever,
-    generator: GroundedAnswerGenerator,
-    top_k: int = DEFAULT_TOP_K,
-):
-    """Runs interactive console session."""
-    print("=" * 60)
-    print("ZentroMart Grounded Customer Support Assistant")
-    print("Type your question and press Enter. Type 'exit' or 'quit' to stop.")
-    print("=" * 60)
+def interactive_conversation_loop(agent: VoiceOpsAgent, conversation_id: str = "cli_session"):
+    """Runs interactive multi-turn customer support session."""
+    print("=" * 65)
+    print("ZentroMart VoiceOps — Multi-Turn Customer Support Console")
+    print("Type your message and press Enter. Type 'exit' or 'quit' to end.")
+    print("=" * 65)
 
+    turn_count = 1
     while True:
         try:
-            query = input("\nUser> ").strip()
-            if not query:
+            user_input = input(f"\n[Turn {turn_count}] Customer> ").strip()
+            if not user_input:
                 continue
-            if query.lower() in ("exit", "quit", "q"):
-                print("Exiting assistant session. Goodbye!")
+            if user_input.lower() in ("exit", "quit", "q"):
+                print("Ending support session. Have a great day!")
                 break
 
-            result = run_single_query(query, retriever, generator, top_k=top_k)
-            print_formatted_result(result)
+            turn = agent.handle_message(user_input, conversation_id=conversation_id)
+            print(f"\n[Turn {turn.turn_number}] Agent ({turn.decision.upper()}):")
+            print(f"   {turn.agent_message}")
+            if turn.tool_calls:
+                print(f"   [Tool Executed: {', '.join(turn.tool_calls)}]")
+            if turn.evidence_sources:
+                print(f"   [Evidence Cited: {', '.join(turn.evidence_sources)}]")
+            turn_count += 1
         except (KeyboardInterrupt, EOFError):
-            print("\nSession interrupted. Goodbye!")
+            print("\nSession interrupted. Ending session.")
             break
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ZentroMart VoiceOps Grounded RAG Assistant")
-    parser.add_argument("--query", "-q", type=str, help="Single query to answer (one-shot mode)")
+    parser = argparse.ArgumentParser(description="ZentroMart VoiceOps Assistant")
+    parser.add_argument("--query", "-q", type=str, help="Single policy query to answer (Phase 2 one-shot mode)")
     parser.add_argument("--top-k", "-k", type=int, default=DEFAULT_TOP_K, help="Number of evidence chunks to retrieve")
+    parser.add_argument("--session-id", "-s", type=str, default="cli_session", help="Session ID for conversation")
     args = parser.parse_args()
 
     # Initialize retriever
@@ -114,14 +119,16 @@ def main():
         return 1
 
     if args.query:
-        # One-shot mode
+        # Phase 2 One-shot mode preserved
         result = run_single_query(args.query, retriever, generator, top_k=args.top_k)
         print_formatted_result(result)
     else:
-        # Interactive mode
-        interactive_loop(retriever, generator, top_k=args.top_k)
+        # Phase 3 Multi-turn Conversation Mode
+        agent = VoiceOpsAgent(retriever=retriever, answer_generator=generator)
+        interactive_conversation_loop(agent, conversation_id=args.session_id)
 
     return 0
+
 
 
 if __name__ == "__main__":

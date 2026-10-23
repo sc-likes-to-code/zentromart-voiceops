@@ -64,6 +64,8 @@ outputs/evaluation/*
 !outputs/evaluation/phase1_audit.md
 !outputs/evaluation/rag_evaluation_summary.md
 !outputs/evaluation/rag_evaluation_results.json
+!outputs/evaluation/conversation_evaluation_summary.md
+!outputs/evaluation/conversation_evaluation_results.json
 
 outputs/sample_outputs/*
 
