@@ -39,6 +39,13 @@ scratch/
 # Runtime mock database outputs
 dataset/tools/tickets_created.csv
 
+# Local index & embeddings
+outputs/index/
+*.index
+*.embeddings.json
+*.embeddings.npy
+
+
 # Supplied capstone dataset — keep local, do not commit
 /dataset/
 
@@ -55,6 +62,8 @@ embeddings/
 # Generated outputs — keep useful reports and examples selectively
 outputs/evaluation/*
 !outputs/evaluation/phase1_audit.md
+!outputs/evaluation/rag_evaluation_summary.md
+!outputs/evaluation/rag_evaluation_results.json
 
 outputs/sample_outputs/*
 
