@@ -1,0 +1,12 @@
+# Core LLM provider
+google-genai>=0.1.0
+
+# Configuration & environment management
+python-dotenv>=1.0.0
+
+# Network & WebSocket communication (Gnani STT/TTS streaming)
+requests>=2.31.0
+websockets>=12.0
+
+# Testing & evaluation
+pytest>=8.0.0

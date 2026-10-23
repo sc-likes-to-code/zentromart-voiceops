@@ -1,0 +1,65 @@
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Environment variables & secrets
+.env
+.env*.local
+!.env.example
+
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Logs and temporary files
+*.log
+logs/
+*.tmp
+temp/
+tmp/
+
+# Audio scratch recordings (exclude generated/scratch audio not for submission)
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.m4a
+audio_recordings/
+scratch/
+
+# Runtime mock database outputs
+dataset/tools/tickets_created.csv
+
+# Supplied capstone dataset — keep local, do not commit
+/dataset/
+
+# Generated indexes, embeddings, and local databases
+vector_store/
+vector_index/
+chroma_db/
+faiss_index/
+embeddings/
+*.faiss
+*.sqlite
+*.sqlite3
+
+# Generated outputs — keep useful reports and examples selectively
+outputs/evaluation/*
+!outputs/evaluation/phase1_audit.md
+
+outputs/sample_outputs/*
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
