@@ -15,7 +15,7 @@
 | **Turns Processed** | **96 / 96** | 100% turns evaluated |
 | **Decision Accuracy** | **100.0%** | `answer`, `clarify`, `escalate`, `refuse` |
 | **Tool Call Accuracy** | **100.0%** | Verification & ticket gateway adherence |
-| **Fact Match Rate (`must_include`)** | **96.3%** | Precision of policy & order facts |
+| **Fact Match Rate (`must_include`)** | **97.6%** | Precision of policy & order facts |
 | **Prohibited Claim Violations (`must_not_include`)** | **0** | Zero unauthorized disclosures / promises |
 
 ---
@@ -33,11 +33,11 @@
   - **Tool Executed:** `lookup_order(order_id=89782837)`
 - **Turn 3** (Decision: `answer`, Expected: `answer`)
   - **Customer:** Last four digits 4533 hain.
-  - **Agent:** Thank you for verifying, Kabir. Your order 89782837 has been verified. How can I assist you with it today?
+  - **Agent:** Thank you for verifying, Kabir. Your order 89782837 has been verified. It was delivered on 2026-10-15 (status: delivered). How can I assist you with it today?
   - **Tool Executed:** `lookup_order(order_id=89782837, verification_value=4533)`
 - **Turn 4** (Decision: `escalate`, Expected: `escalate`)
   - **Customer:** Maine Zentro Vista 43-inch 4K Smart TV damage report kiya tha. Abhi replacement approve kar do na?
-  - **Agent:** For damaged items valued over ₹10,000, review is handled by our Priority Resolution team. I have logged ticket TKT844d5f335ae74fee8af232c6fa30a072 and our colleague will contact you directly.
+  - **Agent:** For damaged items valued over ₹10,000, review is handled by our Priority Resolution team. I have logged ticket TKT37fc5e9fab0c4fb5a812b1267e746fd5 and our colleague will contact you directly.
   - **Tool Executed:** `create_ticket()`
 
 ### [PC003] Scenario: `return_eligibility` (5 turns)
@@ -51,7 +51,7 @@
   - **Tool Executed:** `lookup_order(order_id=18599253)`
 - **Turn 3** (Decision: `answer`, Expected: `answer`)
   - **Customer:** Last four digits 4265 hain.
-  - **Agent:** Thank you for verifying, Meera. Your order 18599253 has been verified. How can I assist you with it today?
+  - **Agent:** Thank you for verifying, Meera. Your order 18599253 has been verified. It was delivered on 2026-10-12 (status: delivered). How can I assist you with it today?
   - **Tool Executed:** `lookup_order(order_id=18599253, verification_value=4265)`
 - **Turn 4** (Decision: `answer`, Expected: `answer`)
   - **Customer:** Kya main Kaafi Running Sneakers return kar sakti hoon?
@@ -71,7 +71,7 @@
   - **Tool Executed:** `lookup_order(order_id=79363550)`
 - **Turn 3** (Decision: `answer`, Expected: `answer`)
   - **Customer:** आख़िरी चार अंक 2949 हैं।
-  - **Agent:** सत्यापन सफल रहा, धन्यवाद Harini! मैं आपके ऑर्डर 79363550 के बारे में क्या सहायता कर सकता हूँ?
+  - **Agent:** सत्यापन सफल रहा, धन्यवाद Harini! आपके ऑर्डर 79363550 की स्थिति delivered है। It was delivered on 2026-10-14 (status: delivered). मैं आपकी क्या सहायता कर सकता हूँ?
   - **Tool Executed:** `lookup_order(order_id=79363550, verification_value=2949)`
 - **Turn 4** (Decision: `answer`, Expected: `answer`)
   - **Customer:** क्या मैं UrbanThread Slim Fit Jeans वापस कर सकती हूँ?
@@ -91,11 +91,11 @@
   - **Tool Executed:** `lookup_order(order_id=37113676)`
 - **Turn 3** (Decision: `answer`, Expected: `answer`)
   - **Customer:** आख़िरी चार अंक 1581 हैं।
-  - **Agent:** सत्यापन सफल रहा, धन्यवाद Kavya! मैं आपके ऑर्डर 37113676 के बारे में क्या सहायता कर सकता हूँ?
+  - **Agent:** सत्यापन सफल रहा, धन्यवाद Kavya! आपके ऑर्डर 37113676 की स्थिति delivered है। It was delivered on 2026-06-18 (status: delivered). मैं आपकी क्या सहायता कर सकता हूँ?
   - **Tool Executed:** `lookup_order(order_id=37113676, verification_value=1581)`
 - **Turn 4** (Decision: `escalate`, Expected: `escalate`)
   - **Customer:** क्या मैं किसी इंसान से बात कर सकती हूँ?
-  - **Agent:** मैंने आपकी सहायता के लिए हमारे सहयोगी (colleague) से बात कराने हेतु टिकट (ticket) TKT389d3d3449a14b3fb578e8a2531ae68f बना दिया है। हमारी टीम जल्द ही आपसे जुड़ेगी।
+  - **Agent:** मैंने आपकी सहायता के लिए हमारे सहयोगी (colleague) से बात कराने हेतु टिकट (ticket) TKT950743799b8540cabecfd79e284cf42b बना दिया है। हमारी टीम जल्द ही आपसे जुड़ेगी।
   - **Tool Executed:** `create_ticket()`
 
 ### [PC006] Scenario: `human_requested` (4 turns)
@@ -109,10 +109,10 @@
   - **Tool Executed:** `lookup_order(order_id=66492475)`
 - **Turn 3** (Decision: `answer`, Expected: `answer`)
   - **Customer:** The last four digits are 6073.
-  - **Agent:** Thank you for verifying, Farhan. Your order 66492475 has been verified. How can I assist you with it today?
+  - **Agent:** Thank you for verifying, Farhan. Your order 66492475 has been verified. It was delivered on 2026-10-06 (status: delivered). How can I assist you with it today?
   - **Tool Executed:** `lookup_order(order_id=66492475, verification_value=6073)`
 - **Turn 4** (Decision: `escalate`, Expected: `escalate`)
   - **Customer:** Actually, can I just speak to a person?
-  - **Agent:** I have connected you with our human support team under ticket ID TKTfd34928be5454f1f81c93316d1025320. A colleague will reach out to you shortly.
+  - **Agent:** I have connected you with our human support team under ticket ID TKTd282b1fba8f44e3a82afa969b53e76c9. A colleague will reach out to you shortly.
   - **Tool Executed:** `create_ticket()`
 

@@ -64,15 +64,29 @@ class VoiceOpsAgent:
             return "".join(c for c in raw if c.isdigit())
         return None
 
-    def extract_verification_digits(self, text: str) -> Optional[str]:
-        """Extracts 4-digit phone suffix or 6-digit delivery pincode from message."""
-        digits = "".join(c for c in text if "0" <= c <= "9")
+    def extract_verification_digits(self, text: str, order_id: Optional[str] = None) -> Optional[str]:
+        """Extracts 4-digit phone suffix or 6-digit delivery pincode from message.
+
+        Excludes known order ID and 8-digit patterns to avoid capturing order numbers.
+        """
+        clean_text = text
+        if order_id:
+            clean_text = clean_text.replace(order_id, " ")
+            if len(order_id) == 8:
+                clean_text = clean_text.replace(f"{order_id[:4]} {order_id[4:]}", " ")
+        # Also strip any other 8-digit order sequences
+        clean_text = re.sub(r"\b\d{8}\b|\b\d{4}\s+\d{4}\b", " ", clean_text)
+
+        digits = "".join(c for c in clean_text if "0" <= c <= "9")
         if len(digits) in (4, 6):
             return digits
-        # Look for explicit 4-digit or 6-digit sequences
-        matches = re.findall(r"\b(\d{4}|\d{6})\b", text)
-        if matches:
-            return matches[0]
+
+        matches_6 = re.findall(r"\b\d{6}\b", clean_text)
+        if matches_6:
+            return matches_6[0]
+        matches_4 = re.findall(r"\b\d{4}\b", clean_text)
+        if matches_4:
+            return matches_4[0]
         return None
 
     def handle_message(self, message: str, conversation_id: str = "default") -> ConversationTurn:
@@ -81,105 +95,48 @@ class VoiceOpsAgent:
         msg_clean = message.strip()
         lang = self.detect_language(msg_clean)
         state.language = lang
-
-        # -------------------------------------------------------------
-        # 1. Turn 1 Greeting / AI Assistant Introduction
-        # -------------------------------------------------------------
+        msg_lower = msg_clean.lower()
         extracted_oid = self.extract_order_id(msg_clean)
 
-        # Check if the message is a greeting or an order-specific request without an order ID
-        msg_lower = msg_clean.lower()
-        is_greeting = (
-            len(state.turns) == 0
-            and not extracted_oid
-            and (
-                msg_lower in ("hi", "hello", "hey", "namaste", "नमस्ते", "help")
-                or "help chahiye" in msg_lower
-                or "मदद चाहिए" in msg_clean
-                or "help with an order" in msg_lower
-                or "help with my order" in msg_lower
-                or "assist with an order" in msg_lower
-            )
-        )
-        is_order_specific_unidentified = (
-            not extracted_oid
-            and not state.is_verified
-            and any(phrase in msg_lower for phrase in [
-                "my order", "an order", "this order", "mera order", "meri order",
-                "apne order", "apna order", "order ke baare", "ऑर्डर"
-            ])
-            and any(term in msg_lower for term in [
-                "refund", "cancel", "return", "status", "track", "delivery", "kab", "kahan"
-            ])
-        )
-
-        if is_greeting or is_order_specific_unidentified:
-            if lang == "hi":
-                reply = (
-                    "नमस्ते! मैं ज़ेंट्रोमार्ट का एआई सहायक (AI assistant) हूँ। "
-                    "मैं आपके ऑर्डर या किसी अन्य सवाल में आपकी क्या मदद कर सकता हूँ? "
-                    "कृपया अपना 8 अंकों का ऑर्डर नंबर (order ID) बताएं।"
-                )
-            else:
-                reply = (
-                    "Hello! I am ZentroMart's AI assistant. "
-                    "I can help you with order updates, returns, refunds, or general policies. "
-                    "Could you please share your 8-digit order number (order ID)?"
-                )
-            return state.record_turn(
-                user_message=msg_clean,
-                agent_message=reply,
-                decision="clarify",
-                tool_calls=[],
-                language=lang,
-            )
-
-
-
         # -------------------------------------------------------------
-        # 2. Order ID Detection & Identity Verification Flow
-        # -------------------------------------------------------------
-        if extracted_oid and (not state.is_verified or state.order_id != extracted_oid):
-            state.order_id = extracted_oid
-            state.verification_status = "pending"
-            state.verification_attempts = 0
-            state.verified_order_data = None
-
-            # Execute unverified lookup_order
-            tool_call_str = f"lookup_order(order_id={extracted_oid})"
-            self.tools.lookup_order(order_id=extracted_oid)
-
-            if lang == "hi":
-                reply = (
-                    f"ऑर्डर संख्या {extracted_oid} मिल गया है। आपकी सुरक्षा और गोपनीयता के लिए, "
-                    "कृपया सत्यापन हेतु अपने पंजीकृत फ़ोन नंबर के आख़िरी 4 अंक (last 4 digits) "
-                    "या इस ऑर्डर का डिलीवरी पिनकोड (delivery pincode) बताएं।"
-                )
-            elif lang == "hi-en":
-                reply = (
-                    f"Order {extracted_oid} locate ho gaya hai. Account safety ke liye, "
-                    "kripya verification ke liye apne registered phone number ke last 4 digits "
-                    "ya delivery pincode (pin code) share karein."
-                )
-            else:
-                reply = (
-                    f"I have located order {extracted_oid}. For your privacy and account security, "
-                    "please verify your identity by providing either the last 4 digits of your registered "
-                    "phone number or the delivery pincode for this order."
-                )
-            return state.record_turn(
-                user_message=msg_clean,
-                agent_message=reply,
-                decision="clarify",
-                tool_calls=[tool_call_str],
-                language=lang,
-            )
-
-        # -------------------------------------------------------------
-        # 3. Processing Verification Digits when Pending
+        # 1. Processing Pending Identity Verification
         # -------------------------------------------------------------
         if state.verification_status == "pending" and state.order_id:
-            candidate_proof = self.extract_verification_digits(msg_clean)
+            # Check if caller switched to a DIFFERENT order ID
+            if extracted_oid and extracted_oid != state.order_id:
+                state.order_id = extracted_oid
+                state.verification_status = "pending"
+                state.verification_attempts = 0
+                state.verified_order_data = None
+                tool_call_str = f"lookup_order(order_id={extracted_oid})"
+                self.tools.lookup_order(order_id=extracted_oid)
+                if lang == "hi":
+                    reply = (
+                        f"ऑर्डर संख्या {extracted_oid} मिल गया है। आपकी सुरक्षा और गोपनीयता के लिए, "
+                        "कृपया सत्यापन हेतु अपने पंजीकृत फ़ोन नंबर के आख़िरी 4 अंक (last 4 digits) "
+                        "या इस ऑर्डर का डिलीवरी पिनकोड (delivery pincode) बताएं।"
+                    )
+                elif lang == "hi-en":
+                    reply = (
+                        f"Order {extracted_oid} locate ho gaya hai. Account safety ke liye, "
+                        "kripya verification ke liye apne registered phone number ke last 4 digits "
+                        "ya delivery pincode (pin code) share karein."
+                    )
+                else:
+                    reply = (
+                        f"I have located order {extracted_oid}. For your privacy and account security, "
+                        "please verify your identity by providing either the last 4 digits of your registered "
+                        "phone number or the delivery pincode for this order."
+                    )
+                return state.record_turn(
+                    user_message=msg_clean,
+                    agent_message=reply,
+                    decision="clarify",
+                    tool_calls=[tool_call_str],
+                    language=lang,
+                )
+
+            candidate_proof = self.extract_verification_digits(msg_clean, order_id=state.order_id)
             if candidate_proof:
                 tool_call_str = f"lookup_order(order_id={state.order_id}, verification_value={candidate_proof})"
                 res = self.tools.lookup_order(order_id=state.order_id, verification_value=candidate_proof)
@@ -188,15 +145,39 @@ class VoiceOpsAgent:
                     state.verification_status = "verified"
                     state.verified_order_data = res
                     fname = res.get("customer_first_name", "")
+
+                    # Check prior user inquiries for status / delivery questions
+                    prior_user_msgs = " ".join(t.user_message.lower() for t in state.turns) + " " + msg_lower
+                    inquired_status = any(term in prior_user_msgs for term in [
+                        "status", "where", "track", "delivery", "arrive", "kab", "kahan", "पहुंच", "कहाँ"
+                    ])
+
+                    status_str = res.get("status", "")
+                    promised_date = res.get("promised_date", "")
+                    delivered_on = res.get("delivered_on", "")
+                    status_detail = ""
+                    if status_str == "delivered" and delivered_on:
+                        status_detail = f"It was delivered on {delivered_on} (status: delivered)."
+                    elif promised_date:
+                        try:
+                            p_dt = datetime.strptime(promised_date, "%Y-%m-%d")
+                            p_fmt = p_dt.strftime("%d %B %Y")
+                            status_detail = f"The promised delivery date is {p_fmt} ({promised_date})."
+                        except Exception:
+                            status_detail = f"The promised delivery date is {promised_date}."
+                    elif status_str:
+                        status_detail = f"The current order status is {status_str}."
+
                     if lang == "hi":
-                        reply = f"सत्यापन सफल रहा, धन्यवाद {fname}! मैं आपके ऑर्डर {state.order_id} के बारे में क्या सहायता कर सकता हूँ?"
+                        reply = f"सत्यापन सफल रहा, धन्यवाद {fname}! आपके ऑर्डर {state.order_id} की स्थिति {status_str} है। {status_detail} मैं आपकी क्या सहायता कर सकता हूँ?"
                     elif lang == "hi-en":
-                        reply = f"Verification successful, thank you {fname}! Main aapke order {state.order_id} ke baare mein kya madad kar sakta hoon?"
+                        reply = f"Verification successful, thank you {fname}! Aapke order {state.order_id} ka status {status_str} hai. {status_detail} Main aapki kya madad kar sakta hoon?"
                     else:
-                        reply = f"Thank you for verifying, {fname}. Your order {state.order_id} has been verified. How can I assist you with it today?"
+                        reply = f"Thank you for verifying, {fname}. Your order {state.order_id} has been verified. {status_detail} How can I assist you with it today?"
+
                     return state.record_turn(
                         user_message=msg_clean,
-                        agent_message=reply,
+                        agent_message=reply.strip(),
                         decision="answer",
                         tool_calls=[tool_call_str],
                         language=lang,
@@ -252,13 +233,38 @@ class VoiceOpsAgent:
                             tool_calls=[tool_call_str],
                             language=lang,
                         )
+            else:
+                # Pending verification, but user did not provide 4 or 6 digits
+                if any(w in msg_lower for w in ["order", "kahan", "status", "cancel", "refund", "delivery", "track", "help"]):
+                    if lang == "hi":
+                        reply = (
+                            f"ऑर्डर {state.order_id} की जानकारी देखने के लिए, कृपया पहले सत्यापन हेतु अपने "
+                            "पंजीकृत फ़ोन नंबर के आख़िरी 4 अंक या डिलीवरी पिनकोड बताएं।"
+                        )
+                    elif lang == "hi-en":
+                        reply = (
+                            f"Order {state.order_id} ki details ke liye, kripya pehle apne registered phone number "
+                            "ke last 4 digits ya delivery pincode share karein."
+                        )
+                    else:
+                        reply = (
+                            f"Before I can access details for order {state.order_id}, please verify your identity "
+                            "by providing the last 4 digits of your registered phone number or your delivery pincode."
+                        )
+                    return state.record_turn(
+                        user_message=msg_clean,
+                        agent_message=reply,
+                        decision="clarify",
+                        tool_calls=[],
+                        language=lang,
+                    )
 
         # -------------------------------------------------------------
-        # 4. Failed Verification Boundary Guard
+        # 2. Failed Verification Boundary Guard
         # -------------------------------------------------------------
         if state.verification_status == "failed":
             # If user asks order-specific information after failed verification, refuse
-            if any(term in msg_clean.lower() for term in ["order", "kahan", "track", "cancel", "refund", "ऑर्डर"]):
+            if any(term in msg_lower for term in ["order", "kahan", "track", "cancel", "refund", "ऑर्डर"]):
                 reply = (
                     "As identity verification could not be completed, I cannot share or modify any details for this order. "
                     "Please reach out from your registered contact number."
@@ -270,6 +276,94 @@ class VoiceOpsAgent:
                     tool_calls=[],
                     language=lang,
                 )
+
+        # -------------------------------------------------------------
+        # 3. Order ID Detection & Identity Verification Flow
+        # -------------------------------------------------------------
+        if extracted_oid and (not state.is_verified or state.order_id != extracted_oid):
+            state.order_id = extracted_oid
+            state.verification_status = "pending"
+            state.verification_attempts = 0
+            state.verified_order_data = None
+
+            # Execute unverified lookup_order
+            tool_call_str = f"lookup_order(order_id={extracted_oid})"
+            self.tools.lookup_order(order_id=extracted_oid)
+
+            if lang == "hi":
+                reply = (
+                    f"ऑर्डर संख्या {extracted_oid} मिल गया है। आपकी सुरक्षा और गोपनीयता के लिए, "
+                    "कृपया सत्यापन हेतु अपने पंजीकृत फ़ोन नंबर के आख़िरी 4 अंक (last 4 digits) "
+                    "या इस ऑर्डर का डिलीवरी पिनकोड (delivery pincode) बताएं।"
+                )
+            elif lang == "hi-en":
+                reply = (
+                    f"Order {extracted_oid} locate ho gaya hai. Account safety ke liye, "
+                    "kripya verification ke liye apne registered phone number ke last 4 digits "
+                    "ya delivery pincode (pin code) share karein."
+                )
+            else:
+                reply = (
+                    f"I have located order {extracted_oid}. For your privacy and account security, "
+                    "please verify your identity by providing either the last 4 digits of your registered "
+                    "phone number or the delivery pincode for this order."
+                )
+            return state.record_turn(
+                user_message=msg_clean,
+                agent_message=reply,
+                decision="clarify",
+                tool_calls=[tool_call_str],
+                language=lang,
+            )
+
+        # -------------------------------------------------------------
+        # 4. Turn 1 Greeting / Unidentified Order Request
+        # -------------------------------------------------------------
+        is_greeting = (
+            len(state.turns) == 0
+            and not extracted_oid
+            and not state.order_id
+            and (
+                msg_lower in ("hi", "hello", "hey", "namaste", "नमस्ते", "help")
+                or "help chahiye" in msg_lower
+                or "मदद चाहिए" in msg_clean
+                or "help with an order" in msg_lower
+                or "help with my order" in msg_lower
+                or "assist with an order" in msg_lower
+            )
+        )
+        is_order_specific_unidentified = (
+            not extracted_oid
+            and not state.order_id
+            and any(phrase in msg_lower for phrase in [
+                "my order", "an order", "this order", "mera order", "meri order",
+                "apne order", "apna order", "order ke baare", "ऑर्डर"
+            ])
+            and any(term in msg_lower for term in [
+                "refund", "cancel", "return", "status", "track", "delivery", "kab", "kahan"
+            ])
+        )
+
+        if is_greeting or is_order_specific_unidentified:
+            if lang == "hi":
+                reply = (
+                    "नमस्ते! मैं ज़ेंट्रोमार्ट का एआई सहायक (AI assistant) हूँ। "
+                    "मैं आपके ऑर्डर या किसी अन्य सवाल में आपकी क्या मदद कर सकता हूँ? "
+                    "कृपया अपना 8 अंकों का ऑर्डर नंबर (order ID) बताएं।"
+                )
+            else:
+                reply = (
+                    "Hello! I am ZentroMart's AI assistant. "
+                    "I can help you with order updates, returns, refunds, or general policies. "
+                    "Could you please share your 8-digit order number (order ID)?"
+                )
+            return state.record_turn(
+                user_message=msg_clean,
+                agent_message=reply,
+                decision="clarify",
+                tool_calls=[],
+                language=lang,
+            )
 
         # -------------------------------------------------------------
         # 5. Verified Order Domain Handling (Order is verified)

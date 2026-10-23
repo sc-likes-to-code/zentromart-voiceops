@@ -4,7 +4,7 @@
     "total_turns": 96,
     "decision_accuracy": 1.0,
     "tool_call_accuracy": 1.0,
-    "must_include_fact_precision": 0.9634,
+    "must_include_fact_precision": 0.9756,
     "prohibited_claim_violations": 0
   },
   "conversations": [
@@ -49,7 +49,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 4533 hain.",
-          "agent_message": "Thank you for verifying, Kabir. Your order 89782837 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Kabir. Your order 89782837 has been verified. It was delivered on 2026-10-15 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -67,7 +67,7 @@
         {
           "turn": 4,
           "user_message": "Maine Zentro Vista 43-inch 4K Smart TV damage report kiya tha. Abhi replacement approve kar do na?",
-          "agent_message": "For damaged items valued over ₹10,000, review is handled by our Priority Resolution team. I have logged ticket TKT844d5f335ae74fee8af232c6fa30a072 and our colleague will contact you directly.",
+          "agent_message": "For damaged items valued over ₹10,000, review is handled by our Priority Resolution team. I have logged ticket TKT37fc5e9fab0c4fb5a812b1267e746fd5 and our colleague will contact you directly.",
           "generated_decision": "escalate",
           "expected_decision": "escalate",
           "decision_match": true,
@@ -125,7 +125,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 4265 hain.",
-          "agent_message": "Thank you for verifying, Meera. Your order 18599253 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Meera. Your order 18599253 has been verified. It was delivered on 2026-10-12 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -215,7 +215,7 @@
         {
           "turn": 3,
           "user_message": "आख़िरी चार अंक 2949 हैं।",
-          "agent_message": "सत्यापन सफल रहा, धन्यवाद Harini! मैं आपके ऑर्डर 79363550 के बारे में क्या सहायता कर सकता हूँ?",
+          "agent_message": "सत्यापन सफल रहा, धन्यवाद Harini! आपके ऑर्डर 79363550 की स्थिति delivered है। It was delivered on 2026-10-14 (status: delivered). मैं आपकी क्या सहायता कर सकता हूँ?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -305,7 +305,7 @@
         {
           "turn": 3,
           "user_message": "आख़िरी चार अंक 1581 हैं।",
-          "agent_message": "सत्यापन सफल रहा, धन्यवाद Kavya! मैं आपके ऑर्डर 37113676 के बारे में क्या सहायता कर सकता हूँ?",
+          "agent_message": "सत्यापन सफल रहा, धन्यवाद Kavya! आपके ऑर्डर 37113676 की स्थिति delivered है। It was delivered on 2026-06-18 (status: delivered). मैं आपकी क्या सहायता कर सकता हूँ?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -323,7 +323,7 @@
         {
           "turn": 4,
           "user_message": "क्या मैं किसी इंसान से बात कर सकती हूँ?",
-          "agent_message": "मैंने आपकी सहायता के लिए हमारे सहयोगी (colleague) से बात कराने हेतु टिकट (ticket) TKT389d3d3449a14b3fb578e8a2531ae68f बना दिया है। हमारी टीम जल्द ही आपसे जुड़ेगी।",
+          "agent_message": "मैंने आपकी सहायता के लिए हमारे सहयोगी (colleague) से बात कराने हेतु टिकट (ticket) TKT950743799b8540cabecfd79e284cf42b बना दिया है। हमारी टीम जल्द ही आपसे जुड़ेगी।",
           "generated_decision": "escalate",
           "expected_decision": "escalate",
           "decision_match": true,
@@ -381,7 +381,7 @@
         {
           "turn": 3,
           "user_message": "The last four digits are 6073.",
-          "agent_message": "Thank you for verifying, Farhan. Your order 66492475 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Farhan. Your order 66492475 has been verified. It was delivered on 2026-10-06 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -399,7 +399,7 @@
         {
           "turn": 4,
           "user_message": "Actually, can I just speak to a person?",
-          "agent_message": "I have connected you with our human support team under ticket ID TKTfd34928be5454f1f81c93316d1025320. A colleague will reach out to you shortly.",
+          "agent_message": "I have connected you with our human support team under ticket ID TKTd282b1fba8f44e3a82afa969b53e76c9. A colleague will reach out to you shortly.",
           "generated_decision": "escalate",
           "expected_decision": "escalate",
           "decision_match": true,
@@ -457,7 +457,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 1267 hain.",
-          "agent_message": "Thank you for verifying, Ira. Your order 45011817 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Ira. Your order 45011817 has been verified. The promised delivery date is 23 October 2026 (2026-10-23). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -475,7 +475,7 @@
         {
           "turn": 4,
           "user_message": "Main is hafte teesri baar call kar rahi hoon isi baare mein.",
-          "agent_message": "As this is a repeated contact, I have created ticket TKT40deb0a459d543e1863dee85971ed510 and escalated this issue to our senior support team.",
+          "agent_message": "As this is a repeated contact, I have created ticket TKTb615a153bfeb4623be97b49784fd61a3 and escalated this issue to our senior support team.",
           "generated_decision": "escalate",
           "expected_decision": "escalate",
           "decision_match": true,
@@ -533,7 +533,7 @@
         {
           "turn": 3,
           "user_message": "The last four digits are 7725.",
-          "agent_message": "Thank you for verifying, Fatima. Your order 48196636 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Fatima. Your order 48196636 has been verified. It was delivered on 2026-10-03 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -551,7 +551,7 @@
         {
           "turn": 4,
           "user_message": "This is the third time I'm calling about this in a week.",
-          "agent_message": "As this is a repeated contact, I have created ticket TKT7d70c35668e743c0875701617047d397 and escalated this issue to our senior support team.",
+          "agent_message": "As this is a repeated contact, I have created ticket TKTc608a7569978488984be252c5837aa1b and escalated this issue to our senior support team.",
           "generated_decision": "escalate",
           "expected_decision": "escalate",
           "decision_match": true,
@@ -609,7 +609,7 @@
         {
           "turn": 3,
           "user_message": "आख़िरी चार अंक 0783 हैं।",
-          "agent_message": "सत्यापन सफल रहा, धन्यवाद Joseph! मैं आपके ऑर्डर 67830826 के बारे में क्या सहायता कर सकता हूँ?",
+          "agent_message": "सत्यापन सफल रहा, धन्यवाद Joseph! आपके ऑर्डर 67830826 की स्थिति return_picked_up है। The promised delivery date is 15 October 2026 (2026-10-15). मैं आपकी क्या सहायता कर सकता हूँ?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -685,7 +685,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 2108 hain.",
-          "agent_message": "Thank you for verifying, Farhan. Your order 16640894 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Farhan. Your order 16640894 has been verified. The promised delivery date is 14 July 2026 (2026-07-14). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -703,7 +703,7 @@
         {
           "turn": 4,
           "user_message": "Mera refund kahan hai?",
-          "agent_message": "Aapka refund timeline se adhik delay ho chuka hai. Maine payments team ke sath ticket TKT2609d4a9ef6f4bda9a34439bca400291 raise kar diya hai. Aapka reference number / RRN 315633825001 hai, jise aap apne bank mein bhi track kar sakte hain.",
+          "agent_message": "Aapka refund timeline se adhik delay ho chuka hai. Maine payments team ke sath ticket TKT0e0e852abfe54d60b310939994c020e2 raise kar diya hai. Aapka reference number / RRN 315633825001 hai, jise aap apne bank mein bhi track kar sakte hain.",
           "generated_decision": "escalate",
           "expected_decision": "escalate",
           "decision_match": true,
@@ -727,7 +727,7 @@
         {
           "turn": 1,
           "user_message": "Hi, my order hasn't arrived yet. Where is it?",
-          "agent_message": "To help you track your order, could you please provide your order ID or let me know what current status is showing in 'My Orders' (such as Placed, Packed, Shipped, or Out for delivery)? Since individual order details were not provided, I cannot look up the exact status without your order number.",
+          "agent_message": "To help you find your order, could you please provide your order ID or let us know what tracking status is currently shown in your 'My Orders' section? (e.g., Placed, Packed, Shipped, or Out for delivery).",
           "generated_decision": "clarify",
           "expected_decision": "clarify",
           "decision_match": true,
@@ -735,9 +735,11 @@
           "expected_tool_calls": "",
           "tool_match": true,
           "must_include": "AI / artificial intelligence / एआई / कृत्रिम बुद्धिमत्ता",
-          "must_include_matched": 1,
+          "must_include_matched": 0,
           "must_include_total": 1,
-          "missing_facts": [],
+          "missing_facts": [
+            "AI / artificial intelligence / एआई / कृत्रिम बुद्धिमत्ता"
+          ],
           "must_not_include_violations": []
         },
         {
@@ -761,7 +763,7 @@
         {
           "turn": 3,
           "user_message": "The last four digits are 8752.",
-          "agent_message": "Thank you for verifying, Manish. Your order 26295015 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Manish. Your order 26295015 has been verified. The promised delivery date is 22 October 2026 (2026-10-22). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -771,17 +773,15 @@
           "expected_tool_calls": "lookup_order(order_id=26295015, verification_value=8752)",
           "tool_match": true,
           "must_include": "2026-10-22 / 22 October 2026 / 22 अक्टूबर 2026",
-          "must_include_matched": 0,
+          "must_include_matched": 1,
           "must_include_total": 1,
-          "missing_facts": [
-            "2026-10-22 / 22 October 2026 / 22 अक्टूबर 2026"
-          ],
+          "missing_facts": [],
           "must_not_include_violations": []
         },
         {
           "turn": 4,
           "user_message": "And what if I'm not at home?",
-          "agent_message": "If you are not at home when the delivery executive attempts delivery, the status will show as 'Delivery attempted'. For more details, you can check section DEL-3 or track your order updates.",
+          "agent_message": "If you are not at home when the delivery executive attempts delivery, the order status will show as 'Delivery attempted' (refer to DEL-3 for further details). If delivery cannot be completed, it may eventually be marked as 'Returned to origin (RTO)' and sent back to the warehouse.",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -803,7 +803,7 @@
         {
           "turn": 1,
           "user_message": "Hi, my order hasn't arrived yet. Where is it?",
-          "agent_message": "To help you find your order, could you please provide your order ID and let us know what current status is shown in the 'My Orders' section (such as Placed, Packed, Shipped, or Out for delivery)? Once you share your order details, we can look up its status for you.",
+          "agent_message": "To help you find your order, could you please share your order ID or check the current status of your order in the 'My Orders' section of the app? Order statuses include Placed, Packed, Shipped, Out for delivery, Delivery attempted, Delivered, or Returned to origin (RTO). Once you provide the order ID or status, I can check further details for you.",
           "generated_decision": "clarify",
           "expected_decision": "clarify",
           "decision_match": true,
@@ -837,7 +837,7 @@
         {
           "turn": 3,
           "user_message": "The last four digits are 0654.",
-          "agent_message": "Thank you for verifying, Reyansh. Your order 75447568 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Reyansh. Your order 75447568 has been verified. The promised delivery date is 24 October 2026 (2026-10-24). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -847,17 +847,15 @@
           "expected_tool_calls": "lookup_order(order_id=75447568, verification_value=0654)",
           "tool_match": true,
           "must_include": "2026-10-24 / 24 October 2026 / 24 अक्टूबर 2026",
-          "must_include_matched": 0,
+          "must_include_matched": 1,
           "must_include_total": 1,
-          "missing_facts": [
-            "2026-10-24 / 24 October 2026 / 24 अक्टूबर 2026"
-          ],
+          "missing_facts": [],
           "must_not_include_violations": []
         },
         {
           "turn": 4,
           "user_message": "And what if I'm not at home?",
-          "agent_message": "If you are not at home when the delivery executive attempts delivery, the order status will show as 'Delivery attempted' (see section DEL-3). If delivery cannot be completed, the package may eventually be marked as 'Returned to origin (RTO)' and sent back to the warehouse.",
+          "agent_message": "If you are not at home when the delivery executive attempts delivery, the order status will show as 'Delivery attempted' (referring to delivery policy DEL-3). If delivery cannot be completed, it may result in being 'Returned to origin (RTO)' where the package goes back to the warehouse and prepaid refunds are processed.",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -913,7 +911,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 5568 hain.",
-          "agent_message": "Thank you for verifying, Kavya. Your order 86152121 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Kavya. Your order 86152121 has been verified. It was delivered on 2026-10-15 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1003,7 +1001,7 @@
         {
           "turn": 3,
           "user_message": "The last four digits are 9260.",
-          "agent_message": "Thank you for verifying, Mary. Your order 10048947 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Mary. Your order 10048947 has been verified. It was delivered on 2026-10-14 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1093,7 +1091,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 6543 hain.",
-          "agent_message": "Thank you for verifying, Meera. Your order 84889113 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Meera. Your order 84889113 has been verified. The promised delivery date is 26 June 2026 (2026-06-26). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1167,7 +1165,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 2987 hain.",
-          "agent_message": "Thank you for verifying, Aarav. Your order 31171629 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Aarav. Your order 31171629 has been verified. It was delivered on 2026-09-29 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1241,7 +1239,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 2743 hain.",
-          "agent_message": "Thank you for verifying, Meera. Your order 35061733 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Meera. Your order 35061733 has been verified. The promised delivery date is 27 October 2026 (2026-10-27). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1315,7 +1313,7 @@
         {
           "turn": 3,
           "user_message": "Last four digits 4255 hain.",
-          "agent_message": "Thank you for verifying, Myra. Your order 26403404 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Myra. Your order 26403404 has been verified. The promised delivery date is 27 October 2026 (2026-10-27). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1389,7 +1387,7 @@
         {
           "turn": 3,
           "user_message": "Pincode 440010 hai.",
-          "agent_message": "Thank you for verifying, Fatima. Your order 15911102 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Fatima. Your order 15911102 has been verified. The promised delivery date is 29 October 2026 (2026-10-29). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1463,7 +1461,7 @@
         {
           "turn": 3,
           "user_message": "My pincode is 700091.",
-          "agent_message": "Thank you for verifying, Harsh. Your order 43165903 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Harsh. Your order 43165903 has been verified. The promised delivery date is 21 October 2026 (2026-10-21). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1689,7 +1687,7 @@
         {
           "turn": 3,
           "user_message": "The last four digits are 9967.",
-          "agent_message": "Thank you for verifying, Abhishek. Your order 22354022 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Abhishek. Your order 22354022 has been verified. It was delivered on 2026-09-17 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,
@@ -1763,7 +1761,7 @@
         {
           "turn": 3,
           "user_message": "The last four digits are 8781.",
-          "agent_message": "Thank you for verifying, Gaurav. Your order 58634590 has been verified. How can I assist you with it today?",
+          "agent_message": "Thank you for verifying, Gaurav. Your order 58634590 has been verified. It was delivered on 2026-09-28 (status: delivered). How can I assist you with it today?",
           "generated_decision": "answer",
           "expected_decision": "answer",
           "decision_match": true,

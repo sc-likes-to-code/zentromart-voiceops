@@ -30,6 +30,15 @@ DEFAULT_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
 DEFAULT_TOP_K = int(os.getenv("RAG_TOP_K", "4"))
 DEFAULT_SCORE_THRESHOLD = float(os.getenv("RAG_SCORE_THRESHOLD", "0.20"))
 
+# Gnani Speech Configuration (Exclusively used for STT and TTS)
+GNANI_API_KEY = os.getenv("GNANI_API_KEY")
+DEFAULT_TTS_MODEL = os.getenv("GNANI_TTS_MODEL", "timbre-v2.5")
+DEFAULT_TTS_VOICE = os.getenv("GNANI_TTS_VOICE", "Kaveri")
+DEFAULT_TTS_LANGUAGE = os.getenv("GNANI_TTS_LANGUAGE", "en-IN")
+DEFAULT_STT_LANGUAGE = os.getenv("GNANI_STT_LANGUAGE", "en-IN")
+DEFAULT_STT_FORMAT = os.getenv("GNANI_STT_FORMAT", "transcribe")
+VOICE_OUTPUT_DIR = SAMPLE_OUTPUTS_DIR / "voice"
+
 # Document status rules
 CURRENT_RETURNS_POLICY = "pol_returns_v4.md"
 SUPERSEDED_RETURNS_POLICY = "pol_returns_v3_superseded.md"

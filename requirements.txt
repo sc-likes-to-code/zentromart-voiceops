@@ -8,6 +8,7 @@ python-dotenv>=1.0.0
 fastembed>=0.4.0
 
 # Network & WebSocket communication (Gnani STT/TTS streaming)
+gnani-vachana>=0.8.0
 requests>=2.31.0
 websockets>=12.0
 
