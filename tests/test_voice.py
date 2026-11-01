@@ -23,6 +23,8 @@ from src.voice import (
     MissingCredentialsError,
     VoicePipelineError,
     VoiceTurnResult,
+    repair_wav_file,
+    repair_wav_header,
 )
 
 
@@ -600,3 +602,186 @@ def test_regression_voice_session_isolation(tmp_path: Path, mock_stt_client, moc
     assert agent.get_or_create_session("session_B").verification_status == "none"
     assert "8-digit order number" in rB.agent_message.lower()
 
+
+def test_repair_wav_header_streaming_sizes():
+    """Streaming TTS WAV files with 0xFFFFFFFF sizes must be repaired accurately."""
+    sample_rate = 16000
+    channels = 1
+    bytes_per_sample = 2
+    num_samples = int(sample_rate * 1.5)
+    raw_pcm = struct.pack(f"<{num_samples}h", *([1000] * num_samples))
+    payload_len = len(raw_pcm)
+
+    # Build streaming header with 0xFFFFFFFF
+    header = (
+        b"RIFF\xff\xff\xff\xffWAVE"
+        b"fmt \x10\x00\x00\x00\x01\x00\x01\x00\x80>\x00\x00\x00}\x00\x00\x02\x00\x10\x00"
+        b"data\xff\xff\xff\xff"
+    )
+    streaming_wav = header + raw_pcm
+    total_len = len(streaming_wav)
+
+    # 1. Repair header
+    fixed = repair_wav_header(streaming_wav)
+
+    # 2. Check length is preserved
+    assert len(fixed) == total_len
+
+    # 3. Check RIFF size = total_len - 8
+    riff_sz = struct.unpack_from("<I", fixed, 4)[0]
+    assert riff_sz == total_len - 8
+
+    # 4. Check data size = payload_len
+    data_sz = struct.unpack_from("<I", fixed, 40)[0]
+    assert data_sz == payload_len
+
+    # 5. Check exact payload preservation (unmodified)
+    assert fixed[44:] == raw_pcm
+
+    # 6. Verify wave module opens it and reports exact duration
+    import io
+    with wave.open(io.BytesIO(fixed), "rb") as wf:
+        assert wf.getnchannels() == channels
+        assert wf.getsampwidth() == bytes_per_sample
+        assert wf.getframerate() == sample_rate
+        assert wf.getnframes() == num_samples
+        assert pytest.approx(wf.getnframes() / wf.getframerate(), 0.01) == 1.5
+
+
+def test_repair_wav_header_with_extra_chunks():
+    """WAV files with non-standard chunks (e.g. JUNK) must parse correctly to 'data'."""
+    raw_pcm = b"\x00\x01\x02\x03" * 100
+    junk_payload = b"PADDING_DATA_HERE!"  # 18 bytes
+    junk_chunk = b"JUNK" + struct.pack("<I", len(junk_payload)) + junk_payload
+    fmt_chunk = b"fmt \x10\x00\x00\x00\x01\x00\x01\x00\x80>\x00\x00\x00}\x00\x00\x02\x00\x10\x00"
+    data_chunk_header = b"data\xff\xff\xff\xff"
+    raw_wav = b"RIFF\xff\xff\xff\xffWAVE" + fmt_chunk + junk_chunk + data_chunk_header + raw_pcm
+
+    fixed = repair_wav_header(raw_wav)
+    assert len(fixed) == len(raw_wav)
+    assert struct.unpack_from("<I", fixed, 4)[0] == len(raw_wav) - 8
+    data_offset = fixed.find(b"data")
+    assert data_offset != -1
+    data_sz = struct.unpack_from("<I", fixed, data_offset + 4)[0]
+    assert data_sz == len(raw_pcm)
+    assert fixed[data_offset + 8:] == raw_pcm
+
+
+def test_repair_wav_file_in_place(tmp_path: Path):
+    """File helper repair_wav_file must patch invalid size bytes on disk."""
+    raw_pcm = b"\x12\x34" * 500
+    header = b"RIFF\xff\xff\xff\xffWAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x80>\x00\x00\x00}\x00\x00\x02\x00\x10\x00data\xff\xff\xff\xff"
+    p = tmp_path / "streaming.wav"
+    p.write_bytes(header + raw_pcm)
+
+    modified = repair_wav_file(p)
+    assert modified is True
+    fixed_bytes = p.read_bytes()
+    assert struct.unpack_from("<I", fixed_bytes, 4)[0] == len(fixed_bytes) - 8
+    assert struct.unpack_from("<I", fixed_bytes, 40)[0] == len(raw_pcm)
+    assert fixed_bytes[44:] == raw_pcm
+
+    # Running again on an already-repaired file returns False (no change)
+    assert repair_wav_file(p) is False
+
+
+def test_retrieved_chunk_ids_propagated_to_turn_and_metadata(tmp_path: Path, mock_stt_client, mock_tts_client):
+    """VoiceTurnResult and saved metadata must record both evidence_sources and retrieved_chunk_ids."""
+    w = create_dummy_wav(tmp_path / "policy_input.wav")
+
+    mock_retriever = MagicMock()
+    mock_retriever.chunks = [MagicMock()]
+    mock_chunk = MagicMock(
+        chunk_id="pol_returns_v4.md:chunk_002",
+        score=0.9123,
+        section_id="RET-2",
+        source_file="pol_returns_v4.md",
+        heading="Return windows by category",
+    )
+    mock_retriever.retrieve.return_value = [mock_chunk]
+
+    mock_gen = MagicMock()
+    mock_gen.generate_answer.return_value = MagicMock(
+        question="What is the return window for clothing?",
+        answer="Clothing has a 15-day return window under current policy.",
+        decision="answer",
+        is_grounded=True,
+        insufficient_evidence=False,
+        evidence_sources=["RET-2"],
+        retrieved_chunks=[mock_chunk],
+    )
+
+    agent = VoiceOpsAgent(retriever=mock_retriever, answer_generator=mock_gen)
+    out_dir = tmp_path / "voice_artifacts_test"
+    pipeline = GnaniVoicePipeline(
+        agent=agent,
+        stt_client=mock_stt_client,
+        tts_client=mock_tts_client,
+        output_dir=out_dir,
+        api_key="fake-key",
+    )
+
+    mock_stt_client.transcribe.return_value = {
+        "success": True,
+        "transcript": "What is the return window for clothing?",
+    }
+
+    result = pipeline.process_turn(w, conversation_id="chunk_test_sess")
+    assert result.decision == "answer"
+    assert result.evidence_sources == ["RET-2"]
+    assert result.retrieved_chunk_ids == ["pol_returns_v4.md:chunk_002"]
+    assert len(result.retrieved_chunks) == 1
+    assert result.retrieved_chunks[0]["chunk_id"] == "pol_returns_v4.md:chunk_002"
+    assert result.retrieved_chunks[0]["score"] == 0.9123
+
+    # Inspect persisted metadata JSON file
+    meta_path = out_dir / "chunk_test_sess" / "turn_01_metadata.json"
+    assert meta_path.exists()
+    with open(meta_path, "r", encoding="utf-8") as f:
+        meta_json = json.load(f)
+
+    assert meta_json["evidence_sources"] == ["RET-2"]
+    assert meta_json["retrieved_chunk_ids"] == ["pol_returns_v4.md:chunk_002"]
+    assert meta_json["retrieved_chunks"][0]["section_id"] == "RET-2"
+
+
+def test_process_folder_error_resilience(tmp_path: Path, mock_stt_client, mock_tts_client):
+    """If one audio file fails during STT, process_folder must record error and continue remaining files."""
+    audio_dir = tmp_path / "batch_input"
+    audio_dir.mkdir()
+    create_dummy_wav(audio_dir / "01_valid.wav")
+    create_dummy_wav(audio_dir / "02_error.wav")
+    create_dummy_wav(audio_dir / "03_valid.wav")
+
+    mock_agent = MagicMock()
+    mock_turn = MagicMock()
+    mock_turn.decision = "clarify"
+    mock_turn.agent_message = "Please share order ID"
+    mock_turn.tool_calls = []
+    mock_turn.evidence_sources = []
+    mock_turn.retrieved_chunk_ids = []
+    mock_turn.retrieved_chunks = []
+    mock_agent.handle_message.return_value = mock_turn
+
+    def side_effect_transcribe(p, **kwargs):
+        if "02_error" in str(p):
+            raise InvalidAudioError("Corrupted audio data")
+        return {"success": True, "transcript": "valid input"}
+
+    mock_stt_client.transcribe.side_effect = side_effect_transcribe
+
+    out_dir = tmp_path / "batch_out"
+    pipeline = GnaniVoicePipeline(
+        agent=mock_agent,
+        stt_client=mock_stt_client,
+        tts_client=mock_tts_client,
+        output_dir=out_dir,
+        api_key="fake-key",
+    )
+
+    results = pipeline.process_folder(audio_dir, conversation_id="batch_err_test", same_session=True)
+    assert len(results) == 3
+    assert results[0].stt_success is True
+    assert results[1].stt_success is False
+    assert "Corrupted audio data" in (results[1].error or "") or results[1].decision == "stt_error"
+    assert results[2].stt_success is True

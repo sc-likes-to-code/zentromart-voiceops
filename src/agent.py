@@ -661,11 +661,26 @@ class VoiceOpsAgent:
         retrieved_chunks = self.retriever.retrieve(msg_clean, top_k=4)
         grounded_ans = self.answer_generator.generate_answer(msg_clean, retrieved_chunks)
 
+        source_chunks = grounded_ans.retrieved_chunks or retrieved_chunks or []
+        chunk_ids = [c.chunk_id for c in source_chunks]
+        chunk_details = [
+            {
+                "chunk_id": c.chunk_id,
+                "score": round(float(c.score), 4),
+                "section_id": c.section_id,
+                "source_file": c.source_file,
+                "heading": c.heading,
+            }
+            for c in source_chunks
+        ]
+
         return state.record_turn(
             user_message=msg_clean,
             agent_message=grounded_ans.answer,
             decision=grounded_ans.decision,
             tool_calls=[],
             evidence_sources=grounded_ans.evidence_sources,
+            retrieved_chunk_ids=chunk_ids,
+            retrieved_chunks=chunk_details,
             language=lang,
         )

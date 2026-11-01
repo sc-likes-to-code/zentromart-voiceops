@@ -1,11 +1,13 @@
 # ZentroMart VoiceOps — Customer Support AI Agent
 
+[![GitHub Repository](https://img.shields.io/badge/GitHub-sc--likes--to--code%2Fzentromart--voiceops-blue?logo=github)](https://github.com/sc-likes-to-code/zentromart-voiceops)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Tests Passing](https://img.shields.io/badge/tests-46%20passed-brightgreen.svg)]()
+[![Tests Passing](https://img.shields.io/badge/tests-64%20passed-brightgreen.svg)]()
 [![LLM: Google Gemini](https://img.shields.io/badge/LLM-Google%20Gemini-orange.svg)]()
 [![Speech: Gnani.ai](https://img.shields.io/badge/Speech-Gnani.ai%20Exclusive-purple.svg)]()
 
-> **IIT Guwahati × Gnani.ai TOKENS→TRANSFORMERS VoiceOps 2026 Capstone Project**  
+> **Public GitHub Repository:** [https://github.com/sc-likes-to-code/zentromart-voiceops](https://github.com/sc-likes-to-code/zentromart-voiceops)
+> **IIT Guwahati × Gnani.ai TOKENS→TRANSFORMERS VoiceOps 2026 Capstone Project**
 > An enterprise-grade, voice-enabled, policy-grounded customer support system for **ZentroMart**, an Indian online retailer.
 
 ---
@@ -79,6 +81,7 @@ zentromart-voiceops/
 │   │   ├── conversation_evaluation_results.json
 │   │   └── phase4_voice_summary.md
 │   └── sample_outputs/              # Generated audio artifacts and transcript logs
+├── run.py                           # Root batch runner for evaluating customer audio folders
 ├── scripts/
 │   ├── build_index.py               # Generates local embeddings & search index
 │   ├── evaluate_rag.py              # Evaluates 52 single-turn policy questions
@@ -140,9 +143,33 @@ python scripts/build_index.py
 
 ---
 
+## Batch Audio Evaluation Runner (`run.py`)
+
+As required by the capstone specification for automated testing, the root `run.py` script takes a folder of customer audio files, runs the end-to-end voice pipeline (Gnani STT -> Agent RAG & Tools -> Gnani TTS), and persists speech audio, text transcripts, and turn metadata citing retrieved document chunk IDs:
+
+```powershell
+# Execute batch runner on customer audio recordings
+python run.py <audio_folder> [--out-dir <directory>]
+
+# Example: Run on policy inquiry sample audio
+python run.py outputs/sample_inputs/policy_question --out-dir outputs/sample_outputs/voice/batch_policy
+
+# Example: Run multi-turn order inquiry audio preserving caller verification
+python run.py outputs/sample_outputs/voice/manual_test --out-dir outputs/sample_outputs/voice/batch_order
+```
+
+### Batch Output Structure
+For each turn in the batch, the runner outputs:
+* `turn_XX_transcript.txt`: Exact speech-to-text transcript returned by Gnani STT.
+* `turn_XX_response.txt`: Grounded agent response text.
+* `turn_XX_output.wav`: High-quality 16 kHz WAV speech response synthesized by Gnani TTS (with repaired, fully playable RIFF headers).
+* `turn_XX_metadata.json`: Full audit record including decision, tools executed, evidence section IDs (`evidence_sources`), and **exact retrieved document chunk IDs** (`retrieved_chunk_ids` with similarity scores).
+
+---
+
 ## Command-Line Interface (CLI) Usage
 
-The unified CLI (`src/cli.py`) supports one-shot policy inquiries, multi-turn interactive console sessions, and complete voice processing.
+The unified CLI (`src/cli.py`) also supports one-shot policy inquiries, multi-turn interactive console sessions, and direct voice execution:
 
 ### 1. One-Shot Policy Query (Text Mode)
 ```powershell
@@ -155,18 +182,11 @@ python src/cli.py --session-id "support_session_01"
 ```
 
 ### 3. Voice Mode: Single Audio Utterance
-Transcribes a customer audio recording with Gnani STT, processes it with `VoiceOpsAgent`, synthesizes the response with Gnani TTS, and saves the output:
 ```powershell
 python src/cli.py --audio "path/to/customer_message.wav" --session-id "voice_call_01"
 ```
 
-### 4. Voice Mode: Multi-Turn Audio Folder (Sequential Session)
-Processes a series of audio turns in order, preserving conversation context and verification across utterances:
-```powershell
-python src/cli.py --audio-dir "outputs/sample_outputs/voice/manual_test" --session-id "order_inquiry_full"
-```
-
-### 5. Live Gnani.ai Voice Smoke Test (Opt-in)
+### 4. Live Gnani.ai Voice Smoke Test (Opt-in)
 Validates live speech recognition and synthesis against the Gnani.ai API without printing credentials:
 ```powershell
 python scripts/smoke_test_voice.py
@@ -177,14 +197,17 @@ python scripts/smoke_test_voice.py
 ## Verification & Evaluation Scorecard
 
 ### Test Suite
-Run the full 46-test unit and regression suite:
+Run the full 64-test unit, regression, and batch integration suite:
 ```powershell
 python -m pytest tests/ -v
 ```
-* **Overall Pass Rate:** 46 passed in 2.05s.
-* **Agent Tests:** 11 passed (caller verification, retry limits, lockout, escalation).
-* **RAG & Retrieval Tests:** 18 passed (grounding, abstention, chunking, BM25).
-* **Voice Tests:** 17 passed (STT, TTS, state preservation, regression tests, provider audit).
+* **Overall Pass Rate:** 64 passed in ~5.3s.
+* **Agent Tests (`test_agent.py`):** 11 passed (caller verification, retry limits, lockout, escalation).
+* **Baseline Tests (`test_baseline.py`):** 10 passed (zero-shot prompt evaluation, fact matching, regex scoring).
+* **RAG & Retrieval Tests (`test_answering.py`, `test_ingestion.py`, `test_retrieval.py`):** 17 passed (grounding, abstention, chunking, BM25).
+* **Batch Runner Tests (`test_run_batch.py`):** 3 passed (CLI arguments, directory validation, error handling).
+* **Voice Tests (`test_voice.py`):** 22 passed (STT, TTS, WAV header repair, chunk ID propagation, error resilience, AST exclusivity audit).
+* **CLI Interface (`test_cli.py`):** 1 passed (parameter handling and formatted output).
 
 ### Practice Dataset Validation
 ```powershell

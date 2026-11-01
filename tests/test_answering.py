@@ -98,6 +98,15 @@ def test_evidence_prompt_formatting(sample_result):
     assert "Electronics have a 7-day return window" in prompt
 
 
+def test_system_prompt_guidelines():
+    assert "CALENDAR AND TIMELINE CALCULATIONS" in SYSTEM_PROMPT
+    assert "2026-10-19" in SYSTEM_PROMPT
+    assert "DECISION LOGIC" in SYSTEM_PROMPT
+    assert "UNANSWERABLE / OUT-OF-SCOPE INQUIRIES" in SYSTEM_PROMPT
+
+
+
+
 def test_json_parse_fallback():
     gen = GroundedAnswerGenerator(api_key="test-mock-key")
     parsed = gen._parse_json_response("```json\n{\"decision\": \"answer\", \"answer\": \"Yes\"}\n```")

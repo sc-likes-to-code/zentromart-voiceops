@@ -26,6 +26,18 @@ logs/
 *.tmp
 temp/
 tmp/
+report/
+
+# Archives and submission packages
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# Video recordings (temporary/OBS raw)
+*.mkv
+!demo.mp4
+!report.pdf
 
 # Audio scratch recordings (exclude generated/scratch audio not for submission)
 *.wav
@@ -33,6 +45,7 @@ tmp/
 *.ogg
 *.flac
 *.m4a
+*.aac
 audio_recordings/
 scratch/
 
@@ -67,6 +80,13 @@ outputs/evaluation/*
 !outputs/evaluation/conversation_evaluation_summary.md
 !outputs/evaluation/conversation_evaluation_results.json
 !outputs/evaluation/phase4_voice_summary.md
+!outputs/evaluation/final_validation_audit.md
+!outputs/evaluation/error_analysis.md
+!outputs/evaluation/step1_vs_step2_comparison.md
+!outputs/evaluation/all_52_diagnostics.json
+!outputs/evaluation/baseline_evaluation_results.json
+!outputs/evaluation/generalisation/
+!outputs/evaluation/generalisation/*
 
 outputs/sample_outputs/*
 

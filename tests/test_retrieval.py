@@ -120,3 +120,77 @@ def test_retriever_empty_query():
     retriever = KnowledgeBaseRetriever()
     assert retriever.retrieve("") == []
     assert retriever.retrieve("   ") == []
+
+
+def test_expand_query():
+    from src.retrieval import expand_query
+    # Hindi return terms expand
+    exp_return = expand_query("क्या मैं 10 दिन बाद वापस कर सकता हूँ?")
+    assert "return" in exp_return
+    assert "window" in exp_return
+
+    # Hindi damage terms expand
+    exp_damage = expand_query("पार्सल टूटा हुआ मिला")
+    assert "damaged" in exp_damage
+
+    # English query without keywords remains unaltered
+    clean = "What is my order status?"
+    assert expand_query(clean) == clean
+
+
+def test_retriever_catalog_deduplication():
+    chunks = [
+        DocumentChunk(
+            chunk_id="products.csv:FAS-0001",
+            source_file="products.csv",
+            doc_id="products.csv",
+            title="Urban Jeans 30 Blue",
+            doc_type="catalog",
+            status="current",
+            effective_from="2026-08-01",
+            section_id="products.csv:FAS-0001",
+            heading="Product SKU FAS-0001: Urban Jeans 30 Blue",
+            text="Catalog Entry: FAS-0001 Urban Jeans 30 Blue category fashion",
+            is_authoritative=True,
+            metadata={"return_category": "fashion"},
+        ),
+        DocumentChunk(
+            chunk_id="products.csv:FAS-0002",
+            source_file="products.csv",
+            doc_id="products.csv",
+            title="Urban Jeans 32 Blue",
+            doc_type="catalog",
+            status="current",
+            effective_from="2026-08-01",
+            section_id="products.csv:FAS-0002",
+            heading="Product SKU FAS-0002: Urban Jeans 32 Blue",
+            text="Catalog Entry: FAS-0002 Urban Jeans 32 Blue category fashion",
+            is_authoritative=True,
+            metadata={"return_category": "fashion"},
+        ),
+        DocumentChunk(
+            chunk_id="pol_returns_v4.md:RET-2",
+            source_file="pol_returns_v4.md",
+            doc_id="POL-RET",
+            title="Returns policy",
+            doc_type="policy",
+            status="current",
+            effective_from="2026-08-01",
+            section_id="RET-2",
+            heading="Return windows by category",
+            text="Fashion apparel has a 14-day return window.",
+            is_authoritative=True,
+            metadata={},
+        ),
+    ]
+    retriever = KnowledgeBaseRetriever()
+    retriever.build_index(chunks)
+
+    # When querying for returning jeans, catalog shouldn't take all top_k slots
+    results = retriever.retrieve("Can I return Urban Jeans?", top_k=2)
+    assert len(results) == 2
+    # One slot is catalog, one slot is policy RET-2
+    sec_ids = {r.section_id for r in results}
+    assert "RET-2" in sec_ids
+    catalog_count = sum(1 for r in results if r.source_file == "products.csv")
+    assert catalog_count <= 1

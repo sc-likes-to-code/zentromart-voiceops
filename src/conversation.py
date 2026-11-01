@@ -11,6 +11,8 @@ class ConversationTurn:
     decision: str  # "answer", "clarify", "escalate", "refuse"
     tool_calls: List[str] = field(default_factory=list)
     evidence_sources: List[str] = field(default_factory=list)
+    retrieved_chunk_ids: List[str] = field(default_factory=list)
+    retrieved_chunks: List[Dict[str, Any]] = field(default_factory=list)
     intent: Optional[str] = None
     language: str = "en"
 
@@ -42,6 +44,8 @@ class ConversationState:
         decision: str,
         tool_calls: Optional[List[str]] = None,
         evidence_sources: Optional[List[str]] = None,
+        retrieved_chunk_ids: Optional[List[str]] = None,
+        retrieved_chunks: Optional[List[Dict[str, Any]]] = None,
         intent: Optional[str] = None,
         language: Optional[str] = None,
     ) -> ConversationTurn:
@@ -52,6 +56,8 @@ class ConversationState:
             decision=decision,
             tool_calls=tool_calls or [],
             evidence_sources=evidence_sources or [],
+            retrieved_chunk_ids=retrieved_chunk_ids or [],
+            retrieved_chunks=retrieved_chunks or [],
             intent=intent or self.current_intent,
             language=language or self.language,
         )

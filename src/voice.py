@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import logging
+import struct
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -53,6 +54,71 @@ class MissingCredentialsError(VoicePipelineError):
     pass
 
 
+def repair_wav_header(audio_bytes: bytes) -> bytes:
+    """Repairs invalid or streaming WAV/RIFF headers (e.g. 0xFFFFFFFF sizes).
+
+    Sets the RIFF container chunk size to (file_size - 8) and the 'data'
+    subchunk size to the actual length of the PCM payload without modifying,
+    truncating, or resampling any audio sample bytes.
+
+    Args:
+        audio_bytes: Raw audio byte sequence.
+
+    Returns:
+        Repaired audio bytes with valid RIFF and data chunk size headers.
+    """
+    if not isinstance(audio_bytes, (bytes, bytearray)) or len(audio_bytes) < 12:
+        return bytes(audio_bytes) if audio_bytes else b""
+
+    # Must begin with RIFF....WAVE
+    if audio_bytes[:4] != b"RIFF" or audio_bytes[8:12] != b"WAVE":
+        return bytes(audio_bytes)
+
+    data = bytearray(audio_bytes)
+    total_len = len(data)
+
+    # Patch RIFF chunk size at bytes 4..7: total_len - 8
+    struct.pack_into("<I", data, 4, max(0, total_len - 8))
+
+    offset = 12
+    while offset + 8 <= total_len:
+        chunk_id = bytes(data[offset:offset + 4])
+        chunk_size = struct.unpack_from("<I", data, offset + 4)[0]
+
+        if chunk_id == b"data":
+            # Actual PCM payload begins immediately after the 8-byte chunk header
+            actual_payload_len = max(0, total_len - (offset + 8))
+            struct.pack_into("<I", data, offset + 4, actual_payload_len)
+            break
+        else:
+            # Advance past this chunk; RIFF specifies 2-byte word alignment padding
+            padded_size = chunk_size + (chunk_size % 2)
+            next_offset = offset + 8 + padded_size
+            if next_offset > total_len:
+                # If a corrupted non-data chunk points beyond EOF, break safely
+                break
+            offset = next_offset
+
+    return bytes(data)
+
+
+def repair_wav_file(file_path: Union[str, Path]) -> bool:
+    """Repairs WAV header chunk sizes in-place for an existing file.
+
+    Returns:
+        True if the file was modified/repaired, False otherwise.
+    """
+    p = Path(file_path)
+    if not p.is_file():
+        return False
+    raw = p.read_bytes()
+    repaired = repair_wav_header(raw)
+    if repaired != raw:
+        p.write_bytes(repaired)
+        return True
+    return False
+
+
 @dataclass
 class VoiceTurnResult:
     """Encapsulates the complete result of a voice-driven conversation turn."""
@@ -64,6 +130,8 @@ class VoiceTurnResult:
     decision: str
     tool_calls: List[str] = field(default_factory=list)
     evidence_sources: List[str] = field(default_factory=list)
+    retrieved_chunk_ids: List[str] = field(default_factory=list)
+    retrieved_chunks: List[Dict[str, Any]] = field(default_factory=list)
     audio_output_path: Optional[str] = None
     stt_success: bool = True
     tts_success: bool = True
@@ -228,7 +296,11 @@ class GnaniVoicePipeline:
                 audio_config=self.audio_config,
                 output_file=out_path,
             )
-            return audio_bytes
+            # Repair WAV header sizes so Windows playback and media tools open cleanly
+            repaired_audio = repair_wav_header(audio_bytes)
+            if out_path:
+                out_path.write_bytes(repaired_audio)
+            return repaired_audio
         except (TTSAuthError, TTSAPIError, ValueError):
             raise
         except Exception as e:
@@ -328,6 +400,8 @@ class GnaniVoicePipeline:
             decision=agent_turn.decision,
             tool_calls=agent_turn.tool_calls,
             evidence_sources=agent_turn.evidence_sources,
+            retrieved_chunk_ids=getattr(agent_turn, "retrieved_chunk_ids", []),
+            retrieved_chunks=getattr(agent_turn, "retrieved_chunks", []),
             audio_output_path=str(out_audio_path) if out_audio_path else None,
             stt_success=True,
             tts_success=tts_success,
@@ -368,7 +442,25 @@ class GnaniVoicePipeline:
         for idx, audio_file in enumerate(audio_files, 1):
             sess_id = base_session_id if same_session else f"{base_session_id}_turn_{idx}"
             logger.info("Processing [%d/%d]: %s (session=%s)", idx, len(audio_files), audio_file.name, sess_id)
-            res = self.process_turn(audio_file, conversation_id=sess_id, language_code=language_code)
+            try:
+                res = self.process_turn(audio_file, conversation_id=sess_id, language_code=language_code)
+            except Exception as err:
+                logger.error("Failed processing %s: %s", audio_file.name, err)
+                # Resilient error capture so one corrupted file doesn't crash the entire batch
+                res = VoiceTurnResult(
+                    conversation_id=sess_id,
+                    turn_number=idx,
+                    audio_input_path=str(audio_file),
+                    transcript="",
+                    agent_message="",
+                    decision="error",
+                    stt_success=False,
+                    tts_success=False,
+                    error=str(err),
+                )
+                session_dir = self.output_dir / sess_id
+                session_dir.mkdir(parents=True, exist_ok=True)
+                self._save_turn_metadata(res, session_dir)
             results.append(res)
 
         return results

@@ -301,7 +301,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Evaluate RAG on practice questions")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of questions to evaluate")
-    parser.add_argument("--delay", type=float, default=0.2, help="Delay between API calls in seconds")
+    parser.add_argument("--delay", type=float, default=4.1, help="Delay between API calls in seconds")
     args = parser.parse_args()
 
     summary, results = run_evaluation(limit=args.limit, delay_between_calls=args.delay)

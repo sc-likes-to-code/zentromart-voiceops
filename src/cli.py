@@ -119,9 +119,11 @@ def print_voice_turn_result(result: VoiceTurnResult):
         print(f"4. TOOLS EXECUTED      : {', '.join(result.tool_calls)}")
     if result.evidence_sources:
         print(f"5. EVIDENCE SOURCES    : {', '.join(result.evidence_sources)}")
-    print(f"6. GNANI TTS AUDIO     : {result.audio_output_path if result.audio_output_path else '(No audio generated)'}")
+    if getattr(result, "retrieved_chunk_ids", None):
+        print(f"6. RETRIEVED CHUNK IDS : {', '.join(result.retrieved_chunk_ids)}")
+    print(f"7. GNANI TTS AUDIO     : {result.audio_output_path if result.audio_output_path else '(No audio generated)'}")
     if result.error:
-        print(f"7. WARNING / ERROR     : {result.error}")
+        print(f"8. WARNING / ERROR     : {result.error}")
     print("=" * 65 + "\n")
 
 
